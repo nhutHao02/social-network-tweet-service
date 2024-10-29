@@ -1,0 +1,3 @@
+service_name: tweet_service
+http_server:
+  address: "localhost:3001"
