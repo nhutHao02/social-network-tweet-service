@@ -11,10 +11,17 @@ import (
 type Config struct {
 	ServerName string            `yaml:"service_name"`
 	HTTPServer *HTTPServerConfig `yaml:"http_server"`
+	Database   *DatabaseConfig   `yaml:"database"`
 }
 
 type HTTPServerConfig struct {
 	Address string `yaml:"address"`
+}
+
+type DatabaseConfig struct {
+	ConnectionString  string `yaml:"connection_string"`
+	DbType            string `yaml:"db_type"`
+	MigrationFilePath string `yaml:"migration_file_path"`
 }
 
 func LoadConfig() *Config {

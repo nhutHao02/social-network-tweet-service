@@ -1,3 +1,7 @@
 service_name: tweet_service
 http_server:
   address: "localhost:3001"
+database:
+  connection_string: root:root@tcp(localhost:3306)/sntweetservice?charset=utf8mb4&parseTime=True&loc=Local
+  db_type: mysql
+  migration_file_path: migrations
