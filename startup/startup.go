@@ -1,7 +1,9 @@
 package startup
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"strings"
 
@@ -13,35 +15,54 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/nhutHao02/social-network-tweet-service/config"
+	"github.com/nhutHao02/social-network-tweet-service/database"
+	"github.com/nhutHao02/social-network-tweet-service/internal"
 	"github.com/nhutHao02/social-network-tweet-service/internal/api"
-	"github.com/nhutHao02/social-network-tweet-service/internal/api/http"
+	"github.com/nhutHao02/social-network-tweet-service/pkg/redis"
+	"golang.org/x/sync/errgroup"
 )
 
 func Start() {
 	// init logger
 	initLogger()
-
 	// load congig
 	cfg := config.LoadConfig()
 
 	// run migration
 	migration(cfg)
+
 	// database setup
+	db := database.OpenConnect(cfg.Database)
 
-	// server
-	http_server := http.NewHTTPServer(cfg)
+	// init redis
+	rdb := redis.InitRedis(cfg.Redis)
+	// Test connection
+	_, err := rdb.Rdb.Ping(context.Background()).Result()
+	if err != nil {
+		logger.Error("failed to init redis------------", zap.Error(err))
+		panic(fmt.Sprintf("Could not connect to Redis: %v", err))
+	}
 
-	server := api.NewSerVer(http_server)
+	// init Server
+	server := internal.InitializeServer(cfg, db, rdb)
 	runServer(server)
 
 }
 
 func runServer(server *api.Server) {
+	var g errgroup.Group
 
-	// run http server
-	server.HTTPServer.RunHTTPServer()
+	g.Go(func() error {
+		return server.HTTPServer.RunHTTPServer()
+	})
 
-	// run grpc server
+	// g.Go(func() error {
+	// 	return server.GRPCServer.RunGRPCServer()
+	// })
+
+	if err := g.Wait(); err != nil {
+		logger.Fatal("Error when start server", zap.Error(err))
+	}
 }
 
 func initLogger() {

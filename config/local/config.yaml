@@ -5,3 +5,10 @@ database:
   connection_string: root:root@tcp(localhost:3306)/sntweetservice?charset=utf8mb4&parseTime=True&loc=Local
   db_type: mysql
   migration_file_path: migrations
+redis:
+  address: "localhost:6379"
+  password: ""
+  db: 0
+  pool-size: 1000
+grpc:
+  port: :3001

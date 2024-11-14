@@ -12,6 +12,8 @@ type Config struct {
 	ServerName string            `yaml:"service_name"`
 	HTTPServer *HTTPServerConfig `yaml:"http_server"`
 	Database   *DatabaseConfig   `yaml:"database"`
+	Redis      *RedisConfig      `yaml:"redis"`
+	GRPC       *GRPCConfig       `yaml:"grpc"`
 }
 
 type HTTPServerConfig struct {
@@ -22,6 +24,17 @@ type DatabaseConfig struct {
 	ConnectionString  string `yaml:"connection_string"`
 	DbType            string `yaml:"db_type"`
 	MigrationFilePath string `yaml:"migration_file_path"`
+}
+
+type RedisConfig struct {
+	Address  string `yaml:"address"`
+	Password string `yaml:"password"`
+	Db       int    `yaml:"db"`
+	PoolSize int    `yaml:"pool-size"`
+}
+
+type GRPCConfig struct {
+	Port string `yaml:"port"`
 }
 
 func LoadConfig() *Config {

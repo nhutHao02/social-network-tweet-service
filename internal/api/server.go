@@ -3,6 +3,7 @@ package api
 import "github.com/nhutHao02/social-network-tweet-service/internal/api/http"
 
 type Server struct {
+	// http server
 	HTTPServer *http.HTTPServer
 	// grpc ser ver
 
