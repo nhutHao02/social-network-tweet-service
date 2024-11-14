@@ -1,6 +1,6 @@
 service_name: tweet_service
 http_server:
-  address: "localhost:3001"
+  address: :4000
 database:
   connection_string: root:root@tcp(localhost:3306)/sntweetservice?charset=utf8mb4&parseTime=True&loc=Local
   db_type: mysql
@@ -11,4 +11,4 @@ redis:
   db: 0
   pool-size: 1000
 grpc:
-  port: :3001
+  port: :4001

@@ -11,11 +11,11 @@ import (
 type HTTPServer struct {
 	Cfg *config.Config
 	// handlers
-	// example addressHandler at V1
+	TweetHandler *v1.TweetHandler
 }
 
-func NewHTTPServer(cfg *config.Config) *HTTPServer {
-	return &HTTPServer{Cfg: cfg}
+func NewHTTPServer(cfg *config.Config, tweetHandler *v1.TweetHandler) *HTTPServer {
+	return &HTTPServer{Cfg: cfg, TweetHandler: tweetHandler}
 }
 
 func (s *HTTPServer) RunHTTPServer() error {
