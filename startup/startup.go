@@ -12,6 +12,8 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/nhutHao02/social-network-common-service/utils/logger"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/nhutHao02/social-network-tweet-service/config"
@@ -19,6 +21,7 @@ import (
 	"github.com/nhutHao02/social-network-tweet-service/internal"
 	"github.com/nhutHao02/social-network-tweet-service/internal/api"
 	"github.com/nhutHao02/social-network-tweet-service/pkg/redis"
+	pb "github.com/nhutHao02/social-network-user-service/pkg/grpc"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -43,8 +46,13 @@ func Start() {
 		panic(fmt.Sprintf("Could not connect to Redis: %v", err))
 	}
 
+	// connect to grpc server
+	userClient := openClientConnection(cfg.Client)
+
 	// init Server
-	server := internal.InitializeServer(cfg, db, rdb)
+	server := internal.InitializeServer(cfg, db, rdb, userClient)
+
+	// run server
 	runServer(server)
 
 }
@@ -100,4 +108,14 @@ func migration(cfg *config.Config) {
 	}
 
 	logger.Info("Migrations applied successfully")
+}
+
+func openClientConnection(cfg *config.ClientConfig) pb.UserServiceClient {
+	conn, err := grpc.NewClient(cfg.UserService, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		logger.Fatal("Failed to connect to gRPC server: ", zap.Error(err))
+	}
+	client := pb.NewUserServiceClient(conn)
+	logger.Info("Connect to user gRPC server port: " + cfg.UserService)
+	return client
 }

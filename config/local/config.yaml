@@ -12,3 +12,5 @@ redis:
   pool-size: 1000
 grpc:
   port: :4001
+client:
+  user_service: :3001

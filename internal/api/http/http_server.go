@@ -20,7 +20,7 @@ func NewHTTPServer(cfg *config.Config, tweetHandler *v1.TweetHandler) *HTTPServe
 
 func (s *HTTPServer) RunHTTPServer() error {
 	r := gin.Default()
-	v1.MapRoutes(r)
+	v1.MapRoutes(r, s.TweetHandler)
 	logger.Info("HTTP Server server listening at" + s.Cfg.HTTPServer.Address)
 	err := r.Run(s.Cfg.HTTPServer.Address)
 	if err != nil {

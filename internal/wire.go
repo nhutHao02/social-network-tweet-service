@@ -11,7 +11,9 @@ import (
 	"github.com/nhutHao02/social-network-tweet-service/internal/api/http"
 	v1 "github.com/nhutHao02/social-network-tweet-service/internal/api/http/v1"
 	"github.com/nhutHao02/social-network-tweet-service/internal/application/imp"
+	"github.com/nhutHao02/social-network-tweet-service/internal/infrastructure/tweet"
 	"github.com/nhutHao02/social-network-tweet-service/pkg/redis"
+	grpcUser "github.com/nhutHao02/social-network-user-service/pkg/grpc"
 )
 
 var serverSet = wire.NewSet(
@@ -30,12 +32,17 @@ var serviceSet = wire.NewSet(
 	imp.NewTweetService,
 )
 
-// var repositorySet = wire.NewSet(
-// 	user.NewUserCommandRepository,
-// 	user.NewUserQueryRepository,
-// )
+var repositorySet = wire.NewSet(
+	tweet.NewTweetCommandRepository,
+	tweet.NewTweetQueryRepository,
+)
 
-func InitializeServer(cfg *config.Config, db *sqlx.DB, rdb *redis.RedisClient) *api.Server {
-	wire.Build(serverSet, itemServerSet, httpHandlerSet, serviceSet)
+func InitializeServer(
+	cfg *config.Config,
+	db *sqlx.DB,
+	rdb *redis.RedisClient,
+	userClient grpcUser.UserServiceClient,
+) *api.Server {
+	wire.Build(serverSet, itemServerSet, httpHandlerSet, serviceSet, repositorySet)
 	return &api.Server{}
 }
