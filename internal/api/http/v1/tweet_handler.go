@@ -4,10 +4,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	common "github.com/nhutHao02/social-network-common-service/model"
+	"github.com/nhutHao02/social-network-common-service/request"
+	"github.com/nhutHao02/social-network-common-service/utils/logger"
 	"github.com/nhutHao02/social-network-common-service/utils/token"
 	"github.com/nhutHao02/social-network-tweet-service/internal/application"
+	"github.com/nhutHao02/social-network-tweet-service/internal/domain/model"
 	grpcUser "github.com/nhutHao02/social-network-user-service/pkg/grpc"
-	"google.golang.org/grpc/metadata"
+	"go.uber.org/zap"
 )
 
 type TweetHandler struct {
@@ -20,19 +24,20 @@ func NewTweetHandler(tweerService application.TweetService, userClient grpcUser.
 }
 
 func (h *TweetHandler) GetTweetByUserID(c *gin.Context) {
-	token, err := token.GetTokenString(c)
+	var req model.GetTweetByUserReq
 
-	// Create context with metadata
-	md := metadata.Pairs("authorization", "Bearer "+token)
-	ctx := metadata.NewOutgoingContext(c.Request.Context(), md)
-
-	res, err := h.userClient.GetUserInfo(ctx, &grpcUser.GetUserRequest{UserID: 27})
+	err := request.GetQueryParamsFromUrl(c, &req)
 	if err != nil {
 		return
 	}
-
-	c.JSON(http.StatusOK, map[string]any{
-		"id":   res.Id,
-		"vlue": res.Email,
-	})
+	token, err := token.GetTokenString(c)
+	if err != nil {
+		logger.Error("TweetHandler-GetTweetByUserID: get token from request error", zap.Error(err))
+		return
+	}
+	res, total, err := h.tweerService.GetTweetByUserID(c.Request.Context(), req, token)
+	if err != nil {
+		c.JSON(http.StatusOK, common.NewErrorResponse(err.Error(), "GetTweetByUserID failure"))
+	}
+	c.JSON(http.StatusOK, common.NewPagingSuccessResponse(res, total))
 }
