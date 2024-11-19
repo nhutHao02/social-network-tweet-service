@@ -30,3 +30,10 @@ type UserAction struct {
 	Bookmark bool `json:"bookmark" db:"Bookmark"`
 	Repost   bool `json:"repost" db:"Repost"`
 }
+
+type PostTweetReq struct {
+	UserID   uint64  `json:"userId" db:"UserID"`
+	Content  *string `json:"content" db:"Content"`
+	UrlImg   *string `json:"urlImg" db:"UrlImg"`
+	UrlVideo *string `json:"urlVideo" db:"UrlVideo"`
+}

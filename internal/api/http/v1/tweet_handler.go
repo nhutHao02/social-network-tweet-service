@@ -10,6 +10,7 @@ import (
 	"github.com/nhutHao02/social-network-common-service/utils/token"
 	"github.com/nhutHao02/social-network-tweet-service/internal/application"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/model"
+	"github.com/nhutHao02/social-network-tweet-service/pkg/constants"
 	grpcUser "github.com/nhutHao02/social-network-user-service/pkg/grpc"
 	"go.uber.org/zap"
 )
@@ -40,4 +41,32 @@ func (h *TweetHandler) GetTweetByUserID(c *gin.Context) {
 		c.JSON(http.StatusOK, common.NewErrorResponse(err.Error(), "GetTweetByUserID failure"))
 	}
 	c.JSON(http.StatusOK, common.NewPagingSuccessResponse(res, total))
+}
+
+func (h *TweetHandler) PostTweet(c *gin.Context) {
+	var req model.PostTweetReq
+
+	err := request.GetBodyJSON(c, &req)
+	if err != nil {
+		return
+	}
+
+	userId, err := token.GetUserId(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.PostTweetFailure))
+		return
+	}
+	if int(req.UserID) != userId {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(constants.InvalidUserID, constants.PostTweetFailure))
+		return
+	}
+
+	success, err := h.tweerService.PostTweet(c.Request.Context(), req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.PostTweetFailure))
+		return
+	}
+
+	c.JSON(http.StatusOK, common.NewSuccessResponse(success))
+
 }

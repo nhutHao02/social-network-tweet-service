@@ -16,12 +16,7 @@ func MapRoutes(
 		{
 			vTweet := v1.Group("/tweet")
 			vTweet.GET("", tweetHandler.GetTweetByUserID)
-
+			vTweet.POST("", tweetHandler.PostTweet)
 		}
 	}
-	// vGuest := router.Group("api/v1/guest")
-	// {
-
-	// }
-
 }

@@ -18,6 +18,16 @@ type tweetService struct {
 	userClient  grpcUser.UserServiceClient
 }
 
+// PostTweet implements application.TweetService.
+func (t *tweetService) PostTweet(ctx context.Context, req model.PostTweetReq) (bool, error) {
+	success, err := t.commandRepo.PostTweet(ctx, req)
+	if err != nil {
+		return false, err
+	}
+	return success, nil
+
+}
+
 // GetTweetByUserID implements application.TweetService.
 func (t *tweetService) GetTweetByUserID(ctx context.Context, req model.GetTweetByUserReq, token string) ([]model.GetTweetByUserRes, uint64, error) {
 	res, total, err := t.queryRepo.GetTweetByUserID(ctx, req)

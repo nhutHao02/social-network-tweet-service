@@ -8,4 +8,5 @@ import (
 
 type TweetService interface {
 	GetTweetByUserID(ctx context.Context, req model.GetTweetByUserReq, token string) ([]model.GetTweetByUserRes, uint64, error)
+	PostTweet(ctx context.Context, req model.PostTweetReq) (bool, error)
 }
