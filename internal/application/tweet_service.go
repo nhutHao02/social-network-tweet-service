@@ -7,5 +7,5 @@ import (
 )
 
 type TweetService interface {
-	GetTweetByUserID(ctx context.Context, req model.GetTweetByUserReq, token string) ([]model.GetTweetByUserRes, int, error)
+	GetTweetByUserID(ctx context.Context, req model.GetTweetByUserReq, token string) ([]model.GetTweetByUserRes, uint64, error)
 }

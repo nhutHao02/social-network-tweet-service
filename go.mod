@@ -9,7 +9,8 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/google/wire v0.6.0
-	github.com/nhutHao02/social-network-common-service v0.0.0-20241114152704-1243dfc3920d
+	github.com/nhutHao02/social-network-common-service v0.0.0-20241119013730-b0c11b810318
+	github.com/nhutHao02/social-network-user-service v0.0.0-20241119015936-814a6f1de2c9
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.68.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -19,8 +20,8 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
-	github.com/nhutHao02/social-network-user-service v0.0.0-20241114173220-d180c325a00b // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
+	gopkg.in/guregu/null.v3 v3.5.0 // indirect
 )
 
 require (

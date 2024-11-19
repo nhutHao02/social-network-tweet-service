@@ -57,7 +57,7 @@ func GetTweetStatistics(ctx context.Context, db *sqlx.DB, tweetID int) (model.St
 }
 
 // GetTweetByUserID implements tweet.TweetQueryRepository.
-func (repo *tweetQueryRepository) GetTweetByUserID(ctx context.Context, req model.GetTweetByUserReq) ([]model.GetTweetByUserRes, int, error) {
+func (repo *tweetQueryRepository) GetTweetByUserID(ctx context.Context, req model.GetTweetByUserReq) ([]model.GetTweetByUserRes, uint64, error) {
 	var res []model.GetTweetByUserRes
 	query := `select t.ID ,
 					t.Content ,
@@ -84,7 +84,7 @@ func (repo *tweetQueryRepository) GetTweetByUserID(ctx context.Context, req mode
 	}
 
 	queryCount := `select count(*) from tweet tw where tw.UserID = ? and tw.DeletedAt is null`
-	var count int
+	var count uint64
 	err = repo.db.GetContext(ctx, &count, queryCount, req.UserID)
 	if err != nil {
 		logger.Error("repo-GetTweetByUserID: count total tweet error", zap.Error(err))

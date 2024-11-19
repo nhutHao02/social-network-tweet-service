@@ -19,7 +19,7 @@ type tweetService struct {
 }
 
 // GetTweetByUserID implements application.TweetService.
-func (t *tweetService) GetTweetByUserID(ctx context.Context, req model.GetTweetByUserReq, token string) ([]model.GetTweetByUserRes, int, error) {
+func (t *tweetService) GetTweetByUserID(ctx context.Context, req model.GetTweetByUserReq, token string) ([]model.GetTweetByUserRes, uint64, error) {
 	res, total, err := t.queryRepo.GetTweetByUserID(ctx, req)
 	if err != nil {
 		return res, total, err
