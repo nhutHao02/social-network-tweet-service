@@ -24,6 +24,16 @@ func NewTweetHandler(tweerService application.TweetService, userClient grpcUser.
 	return &TweetHandler{tweerService: tweerService, userClient: userClient}
 }
 
+// GetTweetByUserID godoc
+// @Summary     GetTweetByUserID
+// @Description Get tweet by user id
+// @Tags        Tweet
+// @Accept      json
+// @Produce     json
+// @Param       Authorization header   string true "Bearer <your_token>"
+// @Param       userID        query    int    true "User ID"
+// @Success     200           {string} string "ok"
+// @Router      /tweet [get]
 func (h *TweetHandler) GetTweetByUserID(c *gin.Context) {
 	var req model.GetTweetByUserReq
 
@@ -43,6 +53,16 @@ func (h *TweetHandler) GetTweetByUserID(c *gin.Context) {
 	c.JSON(http.StatusOK, common.NewPagingSuccessResponse(res, total))
 }
 
+// PostTweet godoc
+// @Summary     PostTweet
+// @Description Post new Tweet
+// @Tags        Tweet
+// @Accept      json
+// @Produce     json
+// @Param       Authorization header string             true "Bearer <your_token>"
+// @Param       body         body   model.PostTweetReq true "Post Tweet Request"
+// @Success     200           {string} string "ok"
+// @Router      /tweet [post]
 func (h *TweetHandler) PostTweet(c *gin.Context) {
 	var req model.PostTweetReq
 
