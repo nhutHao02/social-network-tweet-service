@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	common "github.com/nhutHao02/social-network-common-service/model"
 	"github.com/nhutHao02/social-network-common-service/request"
 	"github.com/nhutHao02/social-network-common-service/utils/logger"
 	"github.com/nhutHao02/social-network-common-service/utils/token"
 	"github.com/nhutHao02/social-network-tweet-service/internal/application"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/model"
+	"github.com/nhutHao02/social-network-tweet-service/pkg/common"
 	"github.com/nhutHao02/social-network-tweet-service/pkg/constants"
 	grpcUser "github.com/nhutHao02/social-network-user-service/pkg/grpc"
 	"go.uber.org/zap"
@@ -32,7 +32,7 @@ func NewTweetHandler(tweerService application.TweetService, userClient grpcUser.
 // @Produce     json
 // @Param       Authorization header   string true "Bearer <your_token>"
 // @Param       userID        query    int    true "User ID"
-// @Success     200           {string} string "ok"
+// @Success     200           {object} common.NewSuccessResponse
 // @Router      /tweet [get]
 func (h *TweetHandler) GetTweetByUserID(c *gin.Context) {
 	var req model.GetTweetByUserReq
@@ -44,11 +44,13 @@ func (h *TweetHandler) GetTweetByUserID(c *gin.Context) {
 	token, err := token.GetTokenString(c)
 	if err != nil {
 		logger.Error("TweetHandler-GetTweetByUserID: get token from request error", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, common.NewErrorResponse(err.Error(), "GetTweetByUserID failure"))
 		return
 	}
 	res, total, err := h.tweerService.GetTweetByUserID(c.Request.Context(), req, token)
 	if err != nil {
-		c.JSON(http.StatusOK, common.NewErrorResponse(err.Error(), "GetTweetByUserID failure"))
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), "GetTweetByUserID failure"))
+		return
 	}
 	c.JSON(http.StatusOK, common.NewPagingSuccessResponse(res, total))
 }
@@ -61,7 +63,7 @@ func (h *TweetHandler) GetTweetByUserID(c *gin.Context) {
 // @Produce     json
 // @Param       Authorization header string             true "Bearer <your_token>"
 // @Param       body         body   model.PostTweetReq true "Post Tweet Request"
-// @Success     200           {string} string "ok"
+// @Success     200           {object} common.NewSuccessResponse
 // @Router      /tweet [post]
 func (h *TweetHandler) PostTweet(c *gin.Context) {
 	var req model.PostTweetReq
@@ -73,7 +75,7 @@ func (h *TweetHandler) PostTweet(c *gin.Context) {
 
 	userId, err := token.GetUserId(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.PostTweetFailure))
+		c.JSON(http.StatusInternalServerError, common.NewErrorResponse(err.Error(), constants.PostTweetFailure))
 		return
 	}
 	if int(req.UserID) != userId {
