@@ -1,45 +1,45 @@
 package common
 
-type Response[T any] struct {
+type Response struct {
 	Success bool          `json:"success"`
-	Data    *T            `json:"data"`
+	Data    interface{}   `json:"data"`
 	Error   *ErrorMessage `json:"error"`
 }
 
-type PagingSuccessResponse[T any] struct {
-	Success   bool    `json:"success"`
-	Data      *T      `json:"data"`
-	TotalPage *uint64 `json:"totalPage"`
+type PagingSuccessResponse struct {
+	Success   bool        `json:"success"`
+	Data      interface{} `json:"data"`
+	TotalPage uint64      `json:"totalPage"`
 }
 
 type ErrorMessage struct {
-	Errors  *string `json:"errors"`
-	Message *string `json:"message"`
+	Errors  string `json:"errors"`
+	Message string `json:"message"`
 }
 
-func NewSuccessResponse[T any](data T) Response[T] {
-	return Response[T]{
+func NewSuccessResponse(data interface{}) Response {
+	return Response{
 		Success: true,
 		Data:    &data,
 		Error:   nil,
 	}
 }
 
-func NewErrorResponse(err string, message string) Response[any] {
-	return Response[any]{
+func NewErrorResponse(err string, message string) Response {
+	return Response{
 		Success: false,
 		Data:    nil,
 		Error: &ErrorMessage{
-			Errors:  &err,
-			Message: &message,
+			Errors:  err,
+			Message: message,
 		},
 	}
 }
 
-func NewPagingSuccessResponse[T any](data T, totalPage uint64) PagingSuccessResponse[T] {
-	return PagingSuccessResponse[T]{
+func NewPagingSuccessResponse(data interface{}, totalPage uint64) PagingSuccessResponse {
+	return PagingSuccessResponse{
 		Success:   true,
 		Data:      &data,
-		TotalPage: &totalPage,
+		TotalPage: totalPage,
 	}
 }

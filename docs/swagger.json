@@ -39,9 +39,42 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "successful",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.PagingSuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.GetTweetByUserRes"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "failure",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -68,7 +101,7 @@
                     },
                     {
                         "description": "Post Tweet Request",
-                        "name": "model",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -78,9 +111,21 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "successfully",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -88,6 +133,67 @@
         }
     },
     "definitions": {
+        "common.ErrorMessage": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "common.PagingSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "success": {
+                    "type": "boolean"
+                },
+                "totalPage": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.Response": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {
+                    "$ref": "#/definitions/common.ErrorMessage"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "model.GetTweetByUserRes": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "$ref": "#/definitions/model.UserAction"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "statistics": {
+                    "$ref": "#/definitions/model.Statistics"
+                },
+                "userID": {
+                    "type": "integer"
+                },
+                "userInfo": {
+                    "$ref": "#/definitions/model.UserInfo"
+                }
+            }
+        },
         "model.PostTweetReq": {
             "type": "object",
             "properties": {
@@ -102,6 +208,54 @@
                 },
                 "userId": {
                     "type": "integer"
+                }
+            }
+        },
+        "model.Statistics": {
+            "type": "object",
+            "properties": {
+                "totalBookmark": {
+                    "type": "integer"
+                },
+                "totalComment": {
+                    "type": "integer"
+                },
+                "totalLove": {
+                    "type": "integer"
+                },
+                "totalRepost": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.UserAction": {
+            "type": "object",
+            "properties": {
+                "bookmark": {
+                    "type": "boolean"
+                },
+                "love": {
+                    "type": "boolean"
+                },
+                "repost": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "model.UserInfo": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fullName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "urlAvt": {
+                    "type": "string"
                 }
             }
         }

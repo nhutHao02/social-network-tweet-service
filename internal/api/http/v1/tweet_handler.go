@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	common "github.com/nhutHao02/social-network-common-service/model"
 	"github.com/nhutHao02/social-network-common-service/request"
 	"github.com/nhutHao02/social-network-common-service/utils/logger"
 	"github.com/nhutHao02/social-network-common-service/utils/token"
 	"github.com/nhutHao02/social-network-tweet-service/internal/application"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/model"
-	"github.com/nhutHao02/social-network-tweet-service/pkg/common"
 	"github.com/nhutHao02/social-network-tweet-service/pkg/constants"
 	grpcUser "github.com/nhutHao02/social-network-user-service/pkg/grpc"
 	"go.uber.org/zap"
@@ -25,15 +25,17 @@ func NewTweetHandler(tweerService application.TweetService, userClient grpcUser.
 }
 
 // GetTweetByUserID godoc
-// @Summary     GetTweetByUserID
-// @Description Get tweet by user id
-// @Tags        Tweet
-// @Accept      json
-// @Produce     json
-// @Param       Authorization header   string true "Bearer <your_token>"
-// @Param       userID        query    int    true "User ID"
-// @Success     200           {object} common.NewSuccessResponse
-// @Router      /tweet [get]
+//
+//	@Summary		GetTweetByUserID
+//	@Description	Get tweet by user id
+//	@Tags			Tweet
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string															true	"Bearer <your_token>"
+//	@Param			userID			query		int																true	"User ID"
+//	@Success		200				{object}	common.PagingSuccessResponse{data=[]model.GetTweetByUserRes}	"successful"
+//	@Failure		default			{object}	common.Response{data=nil}										"failure"
+//	@Router			/tweet [get]
 func (h *TweetHandler) GetTweetByUserID(c *gin.Context) {
 	var req model.GetTweetByUserReq
 
@@ -56,15 +58,16 @@ func (h *TweetHandler) GetTweetByUserID(c *gin.Context) {
 }
 
 // PostTweet godoc
-// @Summary     PostTweet
-// @Description Post new Tweet
-// @Tags        Tweet
-// @Accept      json
-// @Produce     json
-// @Param       Authorization header string             true "Bearer <your_token>"
-// @Param       body         body   model.PostTweetReq true "Post Tweet Request"
-// @Success     200           {object} common.NewSuccessResponse
-// @Router      /tweet [post]
+//
+//	@Summary		PostTweet
+//	@Description	Post new Tweet
+//	@Tags			Tweet
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string							true	"Bearer <your_token>"
+//	@Param			body			body		model.PostTweetReq				true	"Post Tweet Request"
+//	@Success		200				{object}	common.Response{data=boolean}	"successfully"
+//	@Router			/tweet [post]
 func (h *TweetHandler) PostTweet(c *gin.Context) {
 	var req model.PostTweetReq
 

@@ -11,7 +11,7 @@ require (
 	github.com/google/wire v0.6.0
 	github.com/nhutHao02/social-network-common-service v0.0.0-20241119013730-b0c11b810318
 	github.com/nhutHao02/social-network-user-service v0.0.0-20241119015936-814a6f1de2c9
-	github.com/swaggo/gin-swagger v1.6.0
+	github.com/swaggo/gin-swagger v1.3.2
 	github.com/swaggo/swag v1.16.4
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.68.0
