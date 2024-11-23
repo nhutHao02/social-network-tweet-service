@@ -8,6 +8,7 @@ import (
 	"github.com/nhutHao02/social-network-common-service/utils/logger"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/interface/tweet"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/model"
+	"github.com/nhutHao02/social-network-tweet-service/pkg/constants"
 	"go.uber.org/zap"
 )
 
@@ -15,18 +16,57 @@ type tweetQueryRepository struct {
 	db *sqlx.DB
 }
 
-// GetLoveTweetsByUserID implements tweet.TweetQueryRepository.
-func (repo *tweetQueryRepository) GetLoveTweetsByUserID(ctx context.Context, req model.GetLoveTweetsByUserIDReq) ([]model.GetTweetsRes, uint64, error) {
-	var res []model.GetTweetsRes
+func getQueryActionTweetsByUserID(actionTweet constants.ActionTweet) string {
 	query := `select t.ID ,
 					t.Content ,
-					t.UserID
-				from lovetweet lt 
-				left join tweet t
-				on lt.TweetID = t.ID 
-				where lt.UserID = :UserID and lt.DeletedAt is null and t.DeletedAt is null
+					t.UserID `
+	queryJoin := ``
+	switch actionTweet {
+	case constants.Love:
+		queryJoin = `from lovetweet t1 
+					left join tweet t 
+					on t1.TweetID = t.ID `
+	case constants.Bookmark:
+		queryJoin = `from bookmarktweet t1 
+					left join tweet t 
+					on t1.TweetID = t.ID `
+	default:
+		queryJoin = `from reposttweet t1 
+					left join tweet t 
+					on t1.TweetID = t.ID `
+	}
+
+	queryClauses := `where t1.UserID = :UserID and t1.DeletedAt is null and t.DeletedAt is null
 				order by t.CreatedAt desc 
 				limit :Limit Offset :Offset`
+
+	return query + queryJoin + queryClauses
+}
+func getQueryCountActionTweet(actionTweet constants.ActionTweet) string {
+	query := `select count(*) `
+	queryJoin := ``
+	switch actionTweet {
+	case constants.Love:
+		queryJoin = `from lovetweet t1 
+					left join tweet t 
+					on t1.TweetID = t.ID `
+	case constants.Bookmark:
+		queryJoin = `from bookmarktweet t1 
+					left join tweet t 
+					on t1.TweetID = t.ID `
+	default:
+		queryJoin = `from reposttweet t1 
+					left join tweet t 
+					on t1.TweetID = t.ID `
+	}
+	queryClauses := `where t1.UserID = ? and t1.DeletedAt is null and t.DeletedAt is null`
+	return query + queryJoin + queryClauses
+}
+
+// GetActionTweetsByUserID implements tweet.TweetQueryRepository.
+func (repo *tweetQueryRepository) GetActionTweetsByUserID(ctx context.Context, req model.GetActionTweetsByUserIDReq) ([]model.GetTweetsRes, uint64, error) {
+	var res []model.GetTweetsRes
+	query := getQueryActionTweetsByUserID(req.Action)
 	params := map[string]interface{}{
 		"UserID": req.UserID,
 		"Limit":  req.Limit,
@@ -35,25 +75,22 @@ func (repo *tweetQueryRepository) GetLoveTweetsByUserID(ctx context.Context, req
 
 	queryString, args, err := repo.db.BindNamed(query, params)
 	if err != nil {
-		logger.Error("tweetQueryRepository-GetLoveTweetsByUserID: bindName for query error", zap.Error(err))
+		logger.Error("tweetQueryRepository-GetActionTweetsByUserID: bindName for query error", zap.Error(err))
 		return res, 0, err
 	}
 
 	err = repo.db.SelectContext(ctx, &res, queryString, args...)
 	if err != nil && err != sql.ErrNoRows {
-		logger.Error("tweetQueryRepository-GetLoveTweetsByUserID: get tweets error", zap.Error(err))
+		logger.Error("tweetQueryRepository-GetActionTweetsByUserID: get tweets error", zap.Error(err))
 		return res, 0, err
 	}
 
 	// count total tweets
 	var count uint64
-	queryCount := `select count(*) from lovetweet lt 
-				left join tweet t
-				on lt.TweetID = t.ID 
-				where lt.UserID = ? and lt.DeletedAt is null and t.DeletedAt is null`
+	queryCount := getQueryCountActionTweet(req.Action)
 	err = repo.db.GetContext(ctx, &count, queryCount, req.UserID)
 	if err != nil {
-		logger.Error("tweetQueryRepository-GetLoveTweetsByUserID: count total tweet error", zap.Error(err))
+		logger.Error("tweetQueryRepository-GetActionTweetsByUserID: count total tweet error", zap.Error(err))
 		return res, 0, nil
 	}
 

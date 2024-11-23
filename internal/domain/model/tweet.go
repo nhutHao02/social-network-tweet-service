@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/nhutHao02/social-network-tweet-service/pkg/constants"
+)
 
 type GetTweetByUserReq struct {
 	UserID int `form:"userID" db:"UserID"`
@@ -55,9 +59,10 @@ type GetTweetsRes struct {
 	Statistics *Statistics `json:"statistics"`
 }
 
-type GetLoveTweetsByUserIDReq struct {
-	UserID int `form:"userID" db:"UserID"`
-	Page   int `form:"page" db:"Page"`
-	Limit  int `form:"limit" db:"Limit"`
+type GetActionTweetsByUserIDReq struct {
+	UserID int                   `form:"userID" db:"UserID"`
+	Action constants.ActionTweet `form:"action"`
+	Page   int                   `form:"page" db:"Page"`
+	Limit  int                   `form:"limit" db:"Limit"`
 	Token  string
 }

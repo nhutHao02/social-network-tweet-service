@@ -251,7 +251,7 @@ const docTemplate = `{
         },
         "/tweet/love": {
             "get": {
-                "description": "Get Love Tweets By UserID",
+                "description": "Get Tweets By UserID and Action",
                 "consumes": [
                     "application/json"
                 ],
@@ -261,7 +261,7 @@ const docTemplate = `{
                 "tags": [
                     "Tweet"
                 ],
-                "summary": "GetLoveTweetsByUserID",
+                "summary": "GetActionTweetsByUserID",
                 "parameters": [
                     {
                         "type": "string",
@@ -274,6 +274,13 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "User ID",
                         "name": "userID",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Action",
+                        "name": "action",
                         "in": "query",
                         "required": true
                     },

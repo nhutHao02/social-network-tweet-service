@@ -39,9 +39,9 @@ func getUserInfoFromUserClient(ctx context.Context, userClient grpcUser.UserServ
 	}
 }
 
-// GetLoveTweetsByUserID implements application.TweetService.
-func (t *tweetService) GetLoveTweetsByUserID(ctx context.Context, req model.GetLoveTweetsByUserIDReq) ([]model.GetTweetsRes, uint64, error) {
-	res, total, err := t.queryRepo.GetLoveTweetsByUserID(ctx, req)
+// GetActionTweetsByUserID implements application.TweetService.
+func (t *tweetService) GetActionTweetsByUserID(ctx context.Context, req model.GetActionTweetsByUserIDReq) ([]model.GetTweetsRes, uint64, error) {
+	res, total, err := t.queryRepo.GetActionTweetsByUserID(ctx, req)
 	if err != nil {
 		return res, total, err
 	}
