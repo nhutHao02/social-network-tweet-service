@@ -18,6 +18,35 @@ type tweetService struct {
 	userClient  grpcUser.UserServiceClient
 }
 
+// GetTweets implements application.TweetService.
+func (t *tweetService) GetTweets(ctx context.Context, req model.GetTweetsReq) ([]model.GetTweetsRes, uint64, error) {
+	res, total, err := t.queryRepo.GetTweets(ctx, req)
+	if err != nil {
+		return res, total, err
+	}
+
+	// Get User Info
+	// Create context with metadata
+	md := metadata.Pairs("authorization", "Bearer "+req.Token)
+	ctxx := metadata.NewOutgoingContext(ctx, md)
+
+	// pass user info to res
+	for index, item := range res {
+		userRes, err := t.userClient.GetUserInfo(ctxx, &grpcUser.GetUserRequest{UserID: int64(item.UserID)})
+		if err != nil {
+			logger.Error("tweetService-GetTweets: call grpcUser to server error", zap.Error(err))
+		}
+		res[index].UserInfor = &model.UserInfo{
+			ID:       int(userRes.Id),
+			Email:    userRes.Email,
+			FullName: &userRes.FullName,
+			UrlAvt:   &userRes.UrlAvt,
+		}
+	}
+
+	return res, total, nil
+}
+
 // PostTweet implements application.TweetService.
 func (t *tweetService) PostTweet(ctx context.Context, req model.PostTweetReq) (bool, error) {
 	success, err := t.commandRepo.PostTweet(ctx, req)

@@ -33,6 +33,8 @@ func NewTweetHandler(tweerService application.TweetService, userClient grpcUser.
 //	@Produce		json
 //	@Param			Authorization	header		string															true	"Bearer <your_token>"
 //	@Param			userID			query		int																true	"User ID"
+//	@Param			limit			query		int																true	"Limit"
+//	@Param			page			query		int																true	"Page"
 //	@Success		200				{object}	common.PagingSuccessResponse{data=[]model.GetTweetByUserRes}	"successful"
 //	@Failure		default			{object}	common.Response{data=nil}										"failure"
 //	@Router			/tweet [get]
@@ -67,6 +69,7 @@ func (h *TweetHandler) GetTweetByUserID(c *gin.Context) {
 //	@Param			Authorization	header		string							true	"Bearer <your_token>"
 //	@Param			body			body		model.PostTweetReq				true	"Post Tweet Request"
 //	@Success		200				{object}	common.Response{data=boolean}	"successfully"
+//	@Failure		default			{object}	common.Response{data=nil}		"failure"
 //	@Router			/tweet [post]
 func (h *TweetHandler) PostTweet(c *gin.Context) {
 	var req model.PostTweetReq
@@ -93,5 +96,49 @@ func (h *TweetHandler) PostTweet(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, common.NewSuccessResponse(success))
+}
+
+// GetAllTweets godoc
+//
+//	@Summary		GetAllTweets
+//	@Description	Get All Tweets
+//	@Tags			Tweet
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string													true	"Bearer <your_token>"
+//	@Param			limit			query		int														true	"Limit"
+//	@Param			page			query		int														true	"Page"
+//	@Success		200				{object}	common.PagingSuccessResponse{data=[]model.GetTweetsRes}	"successfully"
+//	@Failure		default			{object}	common.Response{data=nil}								"failure"
+//	@Router			/all [get]
+func (h *TweetHandler) GetAllTweets(c *gin.Context) {
+	paging := request.GetPaging(c)
+
+	tokenString, err := token.GetTokenString(c)
+	if err != nil {
+		logger.Error("TweetHandler-GetAllTweets: get token from request error", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, common.NewErrorResponse(err.Error(), constants.GetTweetsFailure))
+		return
+	}
+
+	userID, err := token.GetUserId(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, common.NewErrorResponse(err.Error(), constants.PostTweetFailure))
+		return
+	}
+
+	req := model.GetTweetsReq{
+		UserID: int64(userID),
+		Token:  tokenString,
+		Page:   paging.Page,
+		Limit:  paging.Limit,
+	}
+	res, total, err := h.tweerService.GetTweets(c.Request.Context(), req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.GetTweetsFailure))
+		return
+	}
+
+	c.JSON(http.StatusOK, common.NewPagingSuccessResponse(res, total))
 
 }

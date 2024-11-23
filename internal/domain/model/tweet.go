@@ -37,3 +37,20 @@ type PostTweetReq struct {
 	UrlImg   *string `json:"urlImg" db:"UrlImg"`
 	UrlVideo *string `json:"urlVideo" db:"UrlVideo"`
 }
+
+type GetTweetsReq struct {
+	UserID int64 `db:"UserID"`
+	Token  string
+	Page   int `db:"Page"`
+	Limit  int `db:"Limit"`
+}
+
+type GetTweetsRes struct {
+	ID         int         `json:"id" db:"ID"`
+	Content    *string     `json:"content" db:"Content"`
+	UserID     int         `json:"userID" db:"UserID"`
+	UserInfor  *UserInfo   `json:"userInfo"`
+	CreatedAt  time.Time   `json:"createdAt" db:"CreatedAt"`
+	UserAction *UserAction `json:"action"`
+	Statistics *Statistics `json:"statistics"`
+}

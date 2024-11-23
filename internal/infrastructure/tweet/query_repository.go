@@ -15,6 +15,56 @@ type tweetQueryRepository struct {
 	db *sqlx.DB
 }
 
+// GetTweets implements tweet.TweetQueryRepository.
+func (repo *tweetQueryRepository) GetTweets(ctx context.Context, req model.GetTweetsReq) ([]model.GetTweetsRes, uint64, error) {
+	var res []model.GetTweetsRes
+	query := `select t.ID ,
+					t.Content ,
+					t.UserID
+				from tweet t 
+				where t.DeletedAt is null 
+				order by t.CreatedAt desc 
+				limit :Limit Offset :Offset`
+	params := map[string]interface{}{
+		"Limit":  req.Limit,
+		"Offset": (req.Page - 1) * req.Limit,
+	}
+
+	queryString, args, err := repo.db.BindNamed(query, params)
+	if err != nil {
+		logger.Error("tweetQueryRepository-GetTweets: bindName for query error", zap.Error(err))
+		return res, 0, err
+	}
+	err = repo.db.SelectContext(ctx, &res, queryString, args...)
+	if err != nil && err != sql.ErrNoRows {
+		logger.Error("tweetQueryRepository-GetTweets: get tweets error", zap.Error(err))
+		return res, 0, err
+	}
+
+	// count total tweets
+	queryCount := `select count(*) from tweet tw where tw.DeletedAt is null`
+	var count uint64
+	err = repo.db.GetContext(ctx, &count, queryCount)
+	if err != nil {
+		logger.Error("tweetQueryRepository-GetTweets: count total tweet error", zap.Error(err))
+		return res, 0, nil
+	}
+
+	// get tweet statistics and user action to tweet
+	for index, item := range res {
+		// pass statistics
+		statistics, _ := GetTweetStatistics(ctx, repo.db, item.ID)
+		res[index].Statistics = &statistics
+
+		// pass actions
+		action, _ := GetUserActionWithTweet(ctx, repo.db, item.ID, int(req.UserID))
+		res[index].UserAction = &action
+	}
+
+	return res, count, nil
+
+}
+
 func GetUserActionWithTweet(ctx context.Context, db *sqlx.DB, tweetID int, userID int) (model.UserAction, error) {
 	var res model.UserAction
 	query := `SELECT
