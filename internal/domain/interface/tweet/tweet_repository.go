@@ -9,6 +9,7 @@ import (
 type TweetQueryRepository interface {
 	GetTweetByUserID(ctx context.Context, req model.GetTweetByUserReq) ([]model.GetTweetByUserRes, uint64, error)
 	GetTweets(ctx context.Context, req model.GetTweetsReq) ([]model.GetTweetsRes, uint64, error)
+	GetLoveTweetsByUserID(ctx context.Context, req model.GetLoveTweetsByUserIDReq) ([]model.GetTweetsRes, uint64, error)
 }
 
 type TweetCommandRepository interface {

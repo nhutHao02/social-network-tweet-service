@@ -15,6 +15,62 @@ type tweetQueryRepository struct {
 	db *sqlx.DB
 }
 
+// GetLoveTweetsByUserID implements tweet.TweetQueryRepository.
+func (repo *tweetQueryRepository) GetLoveTweetsByUserID(ctx context.Context, req model.GetLoveTweetsByUserIDReq) ([]model.GetTweetsRes, uint64, error) {
+	var res []model.GetTweetsRes
+	query := `select t.ID ,
+					t.Content ,
+					t.UserID
+				from lovetweet lt 
+				left join tweet t
+				on lt.TweetID = t.ID 
+				where lt.UserID = :UserID and lt.DeletedAt is null and t.DeletedAt is null
+				order by t.CreatedAt desc 
+				limit :Limit Offset :Offset`
+	params := map[string]interface{}{
+		"UserID": req.UserID,
+		"Limit":  req.Limit,
+		"Offset": (req.Page - 1) * req.Limit,
+	}
+
+	queryString, args, err := repo.db.BindNamed(query, params)
+	if err != nil {
+		logger.Error("tweetQueryRepository-GetLoveTweetsByUserID: bindName for query error", zap.Error(err))
+		return res, 0, err
+	}
+
+	err = repo.db.SelectContext(ctx, &res, queryString, args...)
+	if err != nil && err != sql.ErrNoRows {
+		logger.Error("tweetQueryRepository-GetLoveTweetsByUserID: get tweets error", zap.Error(err))
+		return res, 0, err
+	}
+
+	// count total tweets
+	var count uint64
+	queryCount := `select count(*) from lovetweet lt 
+				left join tweet t
+				on lt.TweetID = t.ID 
+				where lt.UserID = ? and lt.DeletedAt is null and t.DeletedAt is null`
+	err = repo.db.GetContext(ctx, &count, queryCount, req.UserID)
+	if err != nil {
+		logger.Error("tweetQueryRepository-GetLoveTweetsByUserID: count total tweet error", zap.Error(err))
+		return res, 0, nil
+	}
+
+	// get tweet statistics and user action to tweet
+	for index, item := range res {
+		// pass statistics
+		statistics, _ := GetTweetStatistics(ctx, repo.db, item.ID)
+		res[index].Statistics = &statistics
+
+		// pass actions
+		action, _ := GetUserActionWithTweet(ctx, repo.db, item.ID, int(req.UserID))
+		res[index].UserAction = &action
+	}
+
+	return res, count, nil
+}
+
 // GetTweets implements tweet.TweetQueryRepository.
 func (repo *tweetQueryRepository) GetTweets(ctx context.Context, req model.GetTweetsReq) ([]model.GetTweetsRes, uint64, error) {
 	var res []model.GetTweetsRes

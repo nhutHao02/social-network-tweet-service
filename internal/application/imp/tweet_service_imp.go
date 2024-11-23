@@ -18,6 +18,40 @@ type tweetService struct {
 	userClient  grpcUser.UserServiceClient
 }
 
+func getUserInfoFromUserClient(ctx context.Context, userClient grpcUser.UserServiceClient, token string, res *[]model.GetTweetsRes) {
+	// Get User Info
+	// Create context with metadata
+	md := metadata.Pairs("authorization", "Bearer "+token)
+	ctxx := metadata.NewOutgoingContext(ctx, md)
+
+	// pass user info to res
+	for index, item := range *res {
+		userRes, err := userClient.GetUserInfo(ctxx, &grpcUser.GetUserRequest{UserID: int64(item.UserID)})
+		if err != nil {
+			logger.Error("token: call grpcUser to server error", zap.Error(err))
+		}
+		(*res)[index].UserInfor = &model.UserInfo{
+			ID:       int(userRes.Id),
+			Email:    userRes.Email,
+			FullName: &userRes.FullName,
+			UrlAvt:   &userRes.UrlAvt,
+		}
+	}
+}
+
+// GetLoveTweetsByUserID implements application.TweetService.
+func (t *tweetService) GetLoveTweetsByUserID(ctx context.Context, req model.GetLoveTweetsByUserIDReq) ([]model.GetTweetsRes, uint64, error) {
+	res, total, err := t.queryRepo.GetLoveTweetsByUserID(ctx, req)
+	if err != nil {
+		return res, total, err
+	}
+
+	getUserInfoFromUserClient(ctx, t.userClient, req.Token, &res)
+
+	return res, total, nil
+
+}
+
 // GetTweets implements application.TweetService.
 func (t *tweetService) GetTweets(ctx context.Context, req model.GetTweetsReq) ([]model.GetTweetsRes, uint64, error) {
 	res, total, err := t.queryRepo.GetTweets(ctx, req)
@@ -25,24 +59,7 @@ func (t *tweetService) GetTweets(ctx context.Context, req model.GetTweetsReq) ([
 		return res, total, err
 	}
 
-	// Get User Info
-	// Create context with metadata
-	md := metadata.Pairs("authorization", "Bearer "+req.Token)
-	ctxx := metadata.NewOutgoingContext(ctx, md)
-
-	// pass user info to res
-	for index, item := range res {
-		userRes, err := t.userClient.GetUserInfo(ctxx, &grpcUser.GetUserRequest{UserID: int64(item.UserID)})
-		if err != nil {
-			logger.Error("tweetService-GetTweets: call grpcUser to server error", zap.Error(err))
-		}
-		res[index].UserInfor = &model.UserInfo{
-			ID:       int(userRes.Id),
-			Email:    userRes.Email,
-			FullName: &userRes.FullName,
-			UrlAvt:   &userRes.UrlAvt,
-		}
-	}
+	getUserInfoFromUserClient(ctx, t.userClient, req.Token, &res)
 
 	return res, total, nil
 }

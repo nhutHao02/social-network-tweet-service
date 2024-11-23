@@ -54,3 +54,10 @@ type GetTweetsRes struct {
 	UserAction *UserAction `json:"action"`
 	Statistics *Statistics `json:"statistics"`
 }
+
+type GetLoveTweetsByUserIDReq struct {
+	UserID int `form:"userID" db:"UserID"`
+	Page   int `form:"page" db:"Page"`
+	Limit  int `form:"limit" db:"Limit"`
+	Token  string
+}

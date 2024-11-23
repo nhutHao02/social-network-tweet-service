@@ -140,5 +140,42 @@ func (h *TweetHandler) GetAllTweets(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, common.NewPagingSuccessResponse(res, total))
+}
 
+// GetLoveTweetsByUserID godoc
+//
+//	@Summary		GetLoveTweetsByUserID
+//	@Description	Get Love Tweets By UserID
+//	@Tags			Tweet
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string													true	"Bearer <your_token>"
+//	@Param			userID			query		int														true	"User ID"
+//	@Param			limit			query		int														true	"Limit"
+//	@Param			page			query		int														true	"Page"
+//	@Success		200				{object}	common.PagingSuccessResponse{data=[]model.GetTweetsRes}	"successful"
+//	@Failure		default			{object}	common.Response{data=nil}								"failure"
+//	@Router			/tweet/love [get]
+func (h *TweetHandler) GetLoveTweetsByUserID(c *gin.Context) {
+	var req model.GetLoveTweetsByUserIDReq
+
+	err := request.GetQueryParamsFromUrl(c, &req)
+	if err != nil {
+		return
+	}
+	token, err := token.GetTokenString(c)
+	if err != nil {
+		logger.Error("TweetHandler-GetLoveTweetsByUserID: get token from request error", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, common.NewErrorResponse(err.Error(), constants.GetLoveTweetsFailure))
+		return
+	}
+
+	req.Token = token
+
+	res, total, err := h.tweerService.GetLoveTweetsByUserID(c.Request.Context(), req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.GetLoveTweetsFailure))
+		return
+	}
+	c.JSON(http.StatusOK, common.NewPagingSuccessResponse(res, total))
 }
