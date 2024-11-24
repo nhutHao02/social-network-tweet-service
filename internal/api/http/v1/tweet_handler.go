@@ -212,7 +212,61 @@ func (h *TweetHandler) ActionTweet(c *gin.Context) {
 		return
 	}
 
+	userID, err := token.GetUserId(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.ActionTweetsFailure))
+		return
+	}
+	if userID != int(req.UserID) {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(constants.InvalidUserID, constants.ActionTweetsFailure))
+		return
+	}
+
 	success, err := h.tweerService.ActionTweetsByUserID(c.Request.Context(), req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.ActionTweetsFailure))
+		return
+	}
+	c.JSON(http.StatusOK, common.NewSuccessResponse(success))
+}
+
+// DeleteActionTweet godoc
+//
+//	@Summary		DeleteActionTweet
+//	@Description	Delete Action to Tweet such as Love, Bookmark, Repost
+//	@Tags			Tweet
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string							true	"Bearer <your_token>"
+//	@Param			model			body		int								true	"ActionTweetReq"
+//	@Success		200				{object}	common.Response{data=boolean}	"successful"
+//	@Failure		default			{object}	common.Response{data=nil}		"failure"
+//	@Router			/tweet/delete-action [delete]
+func (h *TweetHandler) DeleteActionTweet(c *gin.Context) {
+	var req model.ActionTweetReq
+
+	err := request.GetBodyJSON(c, &req)
+	if err != nil {
+		return
+	}
+
+	if !req.Action.IsValid() {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(constants.InvalidAction, constants.ActionTweetsFailure))
+		return
+	}
+
+	userID, err := token.GetUserId(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.ActionTweetsFailure))
+		return
+	}
+
+	if userID != int(req.UserID) {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(constants.InvalidUserID, constants.ActionTweetsFailure))
+		return
+	}
+
+	success, err := h.tweerService.DeleteActionTweetsByUserID(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.ActionTweetsFailure))
 		return

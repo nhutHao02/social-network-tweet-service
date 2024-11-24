@@ -16,4 +16,5 @@ type TweetQueryRepository interface {
 type TweetCommandRepository interface {
 	PostTweet(ctx context.Context, req model.PostTweetReq) (bool, error)
 	ActionTweetsByUserID(ctx context.Context, req model.ActionTweetReq) (bool, error)
+	DeleteActionTweetsByUserID(ctx context.Context, req model.ActionTweetReq) (bool, error)
 }

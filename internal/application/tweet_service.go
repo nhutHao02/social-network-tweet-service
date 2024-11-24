@@ -12,4 +12,5 @@ type TweetService interface {
 	GetTweets(ctx context.Context, req model.GetTweetsReq) ([]model.GetTweetsRes, uint64, error)
 	GetActionTweetsByUserID(ctx context.Context, req model.GetActionTweetsByUserIDReq) ([]model.GetTweetsRes, uint64, error)
 	ActionTweetsByUserID(ctx context.Context, req model.ActionTweetReq) (bool, error)
+	DeleteActionTweetsByUserID(ctx context.Context, req model.ActionTweetReq) (bool, error)
 }

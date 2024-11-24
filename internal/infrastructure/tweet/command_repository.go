@@ -16,8 +16,43 @@ type tweetCommandRepository struct {
 	queryRepo tweet.TweetQueryRepository
 }
 
+func getQueryDeleteActionTweets(req model.ActionTweetReq) string {
+	queryUpdate := ``
+	switch req.Action {
+	case constants.Love:
+		queryUpdate = `UPDATE lovetweet `
+	case constants.Bookmark:
+		queryUpdate = `UPDATE bookmarktweet `
+	default:
+		queryUpdate = `UPDATE reposttweet `
+	}
+
+	querySet := `SET DeletedAt=current_timestamp() `
+	queryClauses := `WHERE UserID = :UserID and TweetID = :TweetID`
+
+	return queryUpdate + querySet + queryClauses
+}
+
+// DeleteActionTweetsByUserID implements tweet.TweetCommandRepository.
+func (repo *tweetCommandRepository) DeleteActionTweetsByUserID(ctx context.Context, req model.ActionTweetReq) (bool, error) {
+	// check exist tweet
+	_, err := repo.queryRepo.ExistedTweet(ctx, int64(req.TweetID))
+	if err != nil {
+		logger.Error("tweetCommandRepository-DeleteActionTweetsByUserID: error when check Exist tweet", zap.Error(err))
+		return false, err
+	}
+	query := getQueryDeleteActionTweets(req)
+
+	_, err = repo.db.NamedExecContext(ctx, query, req)
+	if err != nil {
+		logger.Error("tweetCommandRepository-DeleteActionTweetsByUserID: error when Execute context", zap.Error(err))
+		return false, nil
+	}
+	return true, nil
+}
+
 func getQueryActionTweets(req model.ActionTweetReq) string {
-	queryInsert := `INSERT INTO sntweetservice.bookmarktweet `
+	queryInsert := ``
 	switch req.Action {
 	case constants.Love:
 		queryInsert = `INSERT INTO lovetweet `
