@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/jmoiron/sqlx"
+	resError "github.com/nhutHao02/social-network-common-service/utils/error"
 	"github.com/nhutHao02/social-network-common-service/utils/logger"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/interface/tweet"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/model"
@@ -14,6 +15,21 @@ import (
 
 type tweetQueryRepository struct {
 	db *sqlx.DB
+}
+
+// ExistedTweet implements tweet.TweetQueryRepository.
+func (repo *tweetQueryRepository) ExistedTweet(ctx context.Context, tweetId int64) (bool, error) {
+	var count int64
+	query := `select count(*) from tweet t where t.ID = ? and t.DeletedAt is null`
+	err := repo.db.GetContext(ctx, &count, query, tweetId)
+	if err != nil {
+		logger.Error("ExistedTweet: error ", zap.Error(err))
+		return false, err
+	}
+	if count < 1 {
+		return false, resError.NewResError(nil, "Tweet not exist")
+	}
+	return true, nil
 }
 
 func getQueryActionTweetsByUserID(actionTweet constants.ActionTweet) string {

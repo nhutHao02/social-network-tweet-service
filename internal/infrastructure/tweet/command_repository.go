@@ -7,11 +7,49 @@ import (
 	"github.com/nhutHao02/social-network-common-service/utils/logger"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/interface/tweet"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/model"
+	"github.com/nhutHao02/social-network-tweet-service/pkg/constants"
 	"go.uber.org/zap"
 )
 
 type tweetCommandRepository struct {
-	db *sqlx.DB
+	db        *sqlx.DB
+	queryRepo tweet.TweetQueryRepository
+}
+
+func getQueryActionTweets(req model.ActionTweetReq) string {
+	queryInsert := `INSERT INTO sntweetservice.bookmarktweet `
+	switch req.Action {
+	case constants.Love:
+		queryInsert = `INSERT INTO lovetweet `
+	case constants.Bookmark:
+		queryInsert = `INSERT INTO bookmarktweet `
+	default:
+		queryInsert = `INSERT INTO reposttweet `
+	}
+
+	queryFields := `(UserID, TweetID)
+					VALUES(:UserID, :TweetID);`
+
+	return queryInsert + queryFields
+}
+
+// ActionTweetsByUserID implements tweet.TweetCommandRepository.
+func (repo *tweetCommandRepository) ActionTweetsByUserID(ctx context.Context, req model.ActionTweetReq) (bool, error) {
+	// check exist tweet
+	_, err := repo.queryRepo.ExistedTweet(ctx, int64(req.TweetID))
+	if err != nil {
+		logger.Error("tweetCommandRepository-ActionTweetsByUserID: error when check Exist tweet", zap.Error(err))
+		return false, err
+	}
+	query := getQueryActionTweets(req)
+
+	_, err = repo.db.NamedExecContext(ctx, query, req)
+	if err != nil {
+		logger.Error("tweetCommandRepository-ActionTweetsByUserID: error when Execute context", zap.Error(err))
+		return false, nil
+	}
+	return true, nil
+
 }
 
 func savePostVideo(ctx context.Context, tx *sqlx.Tx, params map[string]interface{}) error {
@@ -96,6 +134,6 @@ func (repo *tweetCommandRepository) PostTweet(ctx context.Context, req model.Pos
 	return true, nil
 }
 
-func NewTweetCommandRepository(db *sqlx.DB) tweet.TweetCommandRepository {
-	return &tweetCommandRepository{db: db}
+func NewTweetCommandRepository(db *sqlx.DB, queryRepo tweet.TweetQueryRepository) tweet.TweetCommandRepository {
+	return &tweetCommandRepository{db: db, queryRepo: queryRepo}
 }

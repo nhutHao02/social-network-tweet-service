@@ -18,6 +18,15 @@ type tweetService struct {
 	userClient  grpcUser.UserServiceClient
 }
 
+// ActionTweetsByUserID implements application.TweetService.
+func (t *tweetService) ActionTweetsByUserID(ctx context.Context, req model.ActionTweetReq) (bool, error) {
+	success, err := t.commandRepo.ActionTweetsByUserID(ctx, req)
+	if err != nil {
+		return success, err
+	}
+	return success, nil
+}
+
 func getUserInfoFromUserClient(ctx context.Context, userClient grpcUser.UserServiceClient, token string, res *[]model.GetTweetsRes) {
 	// Get User Info
 	// Create context with metadata

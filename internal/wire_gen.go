@@ -23,7 +23,7 @@ import (
 
 func InitializeServer(cfg *config.Config, db *sqlx.DB, rdb *redis.RedisClient, userClient grpc.UserServiceClient) *api.Server {
 	tweetQueryRepository := tweet.NewTweetQueryRepository(db)
-	tweetCommandRepository := tweet.NewTweetCommandRepository(db)
+	tweetCommandRepository := tweet.NewTweetCommandRepository(db, tweetQueryRepository)
 	tweetService := imp.NewTweetService(tweetQueryRepository, tweetCommandRepository, userClient)
 	tweetHandler := v1.NewTweetHandler(tweetService, userClient)
 	httpServer := http.NewHTTPServer(cfg, tweetHandler)

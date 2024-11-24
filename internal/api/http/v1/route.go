@@ -23,6 +23,7 @@ func MapRoutes(
 			vTweet.POST("", tweetHandler.PostTweet)
 			vTweet.GET("/all", tweetHandler.GetAllTweets)
 			vTweet.GET("/tweet-action", tweetHandler.GetActionTweetsByUserID)
+			vTweet.POST("/action", tweetHandler.ActionTweet)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

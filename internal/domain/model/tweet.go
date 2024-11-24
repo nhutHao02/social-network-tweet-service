@@ -66,3 +66,9 @@ type GetActionTweetsByUserIDReq struct {
 	Limit  int                   `form:"limit" db:"Limit"`
 	Token  string
 }
+
+type ActionTweetReq struct {
+	UserID  int64                 `json:"userID" db:"UserID"`
+	TweetID int64                 `json:"tweetID" db:"TweetID"`
+	Action  constants.ActionTweet `json:"action"`
+}

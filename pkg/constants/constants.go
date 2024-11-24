@@ -6,6 +6,7 @@ var (
 	GetTweetsFailure     = "GET TWEETS FAILURE"
 	GetLoveTweetsFailure = "GET LOVE TWEETS FAILURE"
 	InvalidAction        = "INVALID ACTION"
+	ActionTweetsFailure  = "ACTIONS TO TWEETS FAILURE"
 )
 
 type ActionTweet string

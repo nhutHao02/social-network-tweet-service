@@ -186,3 +186,36 @@ func (h *TweetHandler) GetActionTweetsByUserID(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, common.NewPagingSuccessResponse(res, total))
 }
+
+// ActionTweet godoc
+//
+//	@Summary		ActionTweet
+//	@Description	Action with Tweet such as Love, Bookmark, Repost
+//	@Tags			Tweet
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string							true	"Bearer <your_token>"
+//	@Param			model			body		int								true	"ActionTweetReq"
+//	@Success		200				{object}	common.Response{data=boolean}	"successful"
+//	@Failure		default			{object}	common.Response{data=nil}		"failure"
+//	@Router			/tweet/action [post]
+func (h *TweetHandler) ActionTweet(c *gin.Context) {
+	var req model.ActionTweetReq
+
+	err := request.GetBodyJSON(c, &req)
+	if err != nil {
+		return
+	}
+
+	if !req.Action.IsValid() {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(constants.InvalidAction, constants.ActionTweetsFailure))
+		return
+	}
+
+	success, err := h.tweerService.ActionTweetsByUserID(c.Request.Context(), req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.ActionTweetsFailure))
+		return
+	}
+	c.JSON(http.StatusOK, common.NewSuccessResponse(success))
+}
