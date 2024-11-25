@@ -16,6 +16,22 @@ type tweetCommandRepository struct {
 	queryRepo tweet.TweetQueryRepository
 }
 
+// PostComment implements tweet.TweetCommandRepository.
+func (repo *tweetCommandRepository) PostComment(ctx context.Context, params map[string]interface{}) (model.OutgoingMessageWSRes, error) {
+	query := `INSERT INTO sntweetservice.tweetcomment
+			(Description, UserID, TweetID)
+			VALUES(:Description, :UserID, :TweetID);`
+	_, err := repo.db.NamedExecContext(ctx, query, params)
+	if err != nil {
+		logger.Error("tweetCommandRepository-PostComment: Error when Execute query ", zap.Error(err))
+	}
+	outGoingMessageWSRes, err := repo.queryRepo.GetNewCommentTweetByUserIDAndTweetID(ctx, params)
+	if err == nil {
+		return outGoingMessageWSRes, err
+	}
+	return outGoingMessageWSRes, nil
+}
+
 func getQueryDeleteActionTweets(req model.ActionTweetReq) string {
 	queryUpdate := ``
 	switch req.Action {

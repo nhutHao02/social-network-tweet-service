@@ -7,6 +7,11 @@ var (
 	GetLoveTweetsFailure = "GET LOVE TWEETS FAILURE"
 	InvalidAction        = "INVALID ACTION"
 	ActionTweetsFailure  = "ACTIONS TO TWEETS FAILURE"
+	ConnectWSFailure     = "CONNECT WEBSOCKET IN COMMENT TWEET FAILURE"
+)
+
+var (
+	BearerString = "Bearer "
 )
 
 type ActionTweet string

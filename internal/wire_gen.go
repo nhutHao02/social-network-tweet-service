@@ -16,15 +16,16 @@ import (
 	"github.com/nhutHao02/social-network-tweet-service/internal/application/imp"
 	"github.com/nhutHao02/social-network-tweet-service/internal/infrastructure/tweet"
 	"github.com/nhutHao02/social-network-tweet-service/pkg/redis"
+	"github.com/nhutHao02/social-network-tweet-service/pkg/websocket"
 	"github.com/nhutHao02/social-network-user-service/pkg/grpc"
 )
 
 // Injectors from wire.go:
 
-func InitializeServer(cfg *config.Config, db *sqlx.DB, rdb *redis.RedisClient, userClient grpc.UserServiceClient) *api.Server {
+func InitializeServer(cfg *config.Config, db *sqlx.DB, rdb *redis.RedisClient, userClient grpc.UserServiceClient, commentWS *websocket.Socket) *api.Server {
 	tweetQueryRepository := tweet.NewTweetQueryRepository(db)
 	tweetCommandRepository := tweet.NewTweetCommandRepository(db, tweetQueryRepository)
-	tweetService := imp.NewTweetService(tweetQueryRepository, tweetCommandRepository, userClient)
+	tweetService := imp.NewTweetService(tweetQueryRepository, tweetCommandRepository, userClient, commentWS)
 	tweetHandler := v1.NewTweetHandler(tweetService, userClient)
 	httpServer := http.NewHTTPServer(cfg, tweetHandler)
 	server := api.NewSerVer(httpServer)

@@ -25,6 +25,9 @@ func MapRoutes(
 			vTweet.GET("/tweet-action", tweetHandler.GetActionTweetsByUserID)
 			vTweet.POST("/action", tweetHandler.ActionTweet)
 			vTweet.DELETE("/delete-action", tweetHandler.DeleteActionTweet)
+
+			vSocket := v1.Group("/ws")
+			vSocket.GET("/comment-tweet-ws", tweetHandler.TweetCommentWebSocketHandler)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

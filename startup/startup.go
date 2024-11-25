@@ -17,10 +17,12 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/nhutHao02/social-network-tweet-service/config"
+
 	"github.com/nhutHao02/social-network-tweet-service/database"
 	"github.com/nhutHao02/social-network-tweet-service/internal"
 	"github.com/nhutHao02/social-network-tweet-service/internal/api"
 	"github.com/nhutHao02/social-network-tweet-service/pkg/redis"
+	"github.com/nhutHao02/social-network-tweet-service/pkg/websocket"
 	pb "github.com/nhutHao02/social-network-user-service/pkg/grpc"
 	"golang.org/x/sync/errgroup"
 )
@@ -49,8 +51,11 @@ func Start() {
 	// connect to grpc server
 	userClient := openClientConnection(cfg.Client)
 
+	// init Socket
+	ws := websocket.NewSocket()
+
 	// init Server
-	server := internal.InitializeServer(cfg, db, rdb, userClient)
+	server := internal.InitializeServer(cfg, db, rdb, userClient, ws)
 
 	// run server
 	runServer(server)

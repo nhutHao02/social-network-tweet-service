@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 
+	"github.com/gorilla/websocket"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/model"
 )
 
@@ -13,4 +14,5 @@ type TweetService interface {
 	GetActionTweetsByUserID(ctx context.Context, req model.GetActionTweetsByUserIDReq) ([]model.GetTweetsRes, uint64, error)
 	ActionTweetsByUserID(ctx context.Context, req model.ActionTweetReq) (bool, error)
 	DeleteActionTweetsByUserID(ctx context.Context, req model.ActionTweetReq) (bool, error)
+	CommentWebSocket(ctx context.Context, conn *websocket.Conn, req model.CommentWSReq)
 }

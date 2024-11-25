@@ -6,3 +6,10 @@ type UserInfo struct {
 	FullName *string `json:"fullName"`
 	UrlAvt   *string `json:"urlAvt"`
 }
+
+type MessageUserInfo struct {
+	ID       int     `json:"id"`
+	Email    *string `json:"email"`
+	FullName *string `json:"fullName"`
+	UrlAvt   *string `json:"urlAvt"`
+}

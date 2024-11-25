@@ -13,6 +13,7 @@ import (
 	"github.com/nhutHao02/social-network-tweet-service/internal/application/imp"
 	"github.com/nhutHao02/social-network-tweet-service/internal/infrastructure/tweet"
 	"github.com/nhutHao02/social-network-tweet-service/pkg/redis"
+	ws "github.com/nhutHao02/social-network-tweet-service/pkg/websocket"
 	grpcUser "github.com/nhutHao02/social-network-user-service/pkg/grpc"
 )
 
@@ -42,6 +43,7 @@ func InitializeServer(
 	db *sqlx.DB,
 	rdb *redis.RedisClient,
 	userClient grpcUser.UserServiceClient,
+	commentWS *ws.Socket,
 ) *api.Server {
 	wire.Build(serverSet, itemServerSet, httpHandlerSet, serviceSet, repositorySet)
 	return &api.Server{}

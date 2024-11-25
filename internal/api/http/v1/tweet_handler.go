@@ -11,6 +11,7 @@ import (
 	"github.com/nhutHao02/social-network-tweet-service/internal/application"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/model"
 	"github.com/nhutHao02/social-network-tweet-service/pkg/constants"
+	"github.com/nhutHao02/social-network-tweet-service/pkg/websocket"
 	grpcUser "github.com/nhutHao02/social-network-user-service/pkg/grpc"
 	"go.uber.org/zap"
 )
@@ -272,4 +273,41 @@ func (h *TweetHandler) DeleteActionTweet(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, common.NewSuccessResponse(success))
+}
+
+func (h *TweetHandler) TweetCommentWebSocketHandler(c *gin.Context) {
+	var req model.CommentWSReq
+
+	if err := request.GetQueryParamsFromUrl(c, &req); err != nil {
+		return
+	}
+	userID, err := token.GetUserId(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.ConnectWSFailure))
+		return
+	}
+
+	if userID != int(req.UserID) {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(constants.InvalidUserID, constants.ConnectWSFailure))
+		return
+	}
+
+	token, err := token.GetTokenString(c)
+	if err != nil {
+		logger.Error("TweetHandler-GetActionTweetsByUserID: get token from request error", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, common.NewErrorResponse(err.Error(), constants.GetLoveTweetsFailure))
+		return
+	}
+
+	req.Token = token
+
+	// Upgrade HTTP connection to WebSocket
+	conn, err := websocket.Upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		logger.Error("Error when upgrade HTTP connection to WebSocket", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, common.NewErrorResponse(err.Error(), constants.ConnectWSFailure))
+		return
+	}
+
+	h.tweerService.CommentWebSocket(c.Request.Context(), conn, req)
 }

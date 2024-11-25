@@ -17,6 +17,28 @@ type tweetQueryRepository struct {
 	db *sqlx.DB
 }
 
+// GetNewCommentTweetByUserIDAndTweetID implements tweet.TweetQueryRepository.
+func (repo *tweetQueryRepository) GetNewCommentTweetByUserIDAndTweetID(ctx context.Context, params map[string]interface{}) (model.OutgoingMessageWSRes, error) {
+	var res model.OutgoingMessageWSRes
+	query := `select tc.ID as 'ID' ,
+					tc.Description as 'Content' ,
+					tc.CreatedAt as 'Timestamp' 
+				from tweetcomment tc 
+				where tc.UserID = :UserID and tc.TweetID = :TweetID and tc.DeletedAt is null 
+				order by tc.ID desc 
+				limit 1`
+	queryString, args, err := repo.db.BindNamed(query, params)
+	if err != nil {
+		logger.Error("tweetQueryRepository-GetNewCommentTweetByUserIDAndTweetID: Error when BindName query", zap.Error(err))
+		return res, err
+	}
+	if err = repo.db.GetContext(ctx, &res, queryString, args...); err != nil {
+		logger.Error("tweetQueryRepository-GetNewCommentTweetByUserIDAndTweetID: Error when GetContext", zap.Error(err))
+		return res, err
+	}
+	return res, nil
+}
+
 // ExistedTweet implements tweet.TweetQueryRepository.
 func (repo *tweetQueryRepository) ExistedTweet(ctx context.Context, tweetId int64) (bool, error) {
 	var count int64
