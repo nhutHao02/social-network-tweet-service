@@ -275,6 +275,19 @@ func (h *TweetHandler) DeleteActionTweet(c *gin.Context) {
 	c.JSON(http.StatusOK, common.NewSuccessResponse(success))
 }
 
+// TweetCommentWebSocketHandler godoc
+//
+//	@Summary		TweetCommentWebSocketHandler
+//	@Description	Establish a WebSocket connection to comment on tweets in real-time.
+//	@Tags			Tweet
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string						true	"Bearer <your_token>"
+//	@Param			userID			query		int							true	"User ID"
+//	@Param			tweetID			query		int							true	"Tweet ID"
+//	@Success		101				{string}	string						"WebSocket connection established"
+//	@Failure		default			{object}	common.Response{data=nil}	"failure"
+//	@Router			/ws/comment-tweet-ws [get]
 func (h *TweetHandler) TweetCommentWebSocketHandler(c *gin.Context) {
 	var req model.CommentWSReq
 
@@ -310,4 +323,41 @@ func (h *TweetHandler) TweetCommentWebSocketHandler(c *gin.Context) {
 	}
 
 	h.tweerService.CommentWebSocket(c.Request.Context(), conn, req)
+}
+
+// GetTweetComments godoc
+//
+//	@Summary		GetTweetComments
+//	@Description	Get Tweet Comments
+//	@Tags			Tweet
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string														true	"Bearer <your_token>"
+//	@Param			tweetID			query		int															true	"Tweet ID"
+//	@Param			limit			query		int															true	"Limit"
+//	@Param			page			query		int															true	"Page"
+//	@Success		200				{object}	common.PagingSuccessResponse{data=[]model.TweetCommentRes}	"successful"
+//	@Failure		default			{object}	common.Response{data=nil}									"failure"
+//	@Router			/comment [get]
+func (h *TweetHandler) GetTweetComments(c *gin.Context) {
+	var req model.TweetCommentReq
+
+	if err := request.GetQueryParamsFromUrl(c, &req); err != nil {
+		return
+	}
+
+	token, err := token.GetTokenString(c)
+	if err != nil {
+		logger.Error("TweetHandler-GetTweetComments: get token from request error", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, common.NewErrorResponse(err.Error(), constants.GetLoveTweetsFailure))
+		return
+	}
+	req.Token = token
+
+	res, total, err := h.tweerService.GetTweetComments(c.Request.Context(), req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.NewErrorResponse(err.Error(), constants.GetLoveTweetsFailure))
+		return
+	}
+	c.JSON(http.StatusOK, common.NewPagingSuccessResponse(res, total))
 }

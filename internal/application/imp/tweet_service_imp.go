@@ -23,6 +23,37 @@ type tweetService struct {
 	commentWS   *ws.Socket
 }
 
+// GetTweetComments implements application.TweetService.
+func (t *tweetService) GetTweetComments(ctx context.Context, req model.TweetCommentReq) ([]model.TweetCommentRes, uint64, error) {
+	res, total, err := t.queryRepo.GetTweetComments(ctx, req)
+	if err != nil {
+		return res, total, err
+	}
+
+	// Get User Info
+	// Create context with metadata
+	md := metadata.Pairs("authorization", constants.BearerString+req.Token)
+	ctxx := metadata.NewOutgoingContext(ctx, md)
+
+	for index, _ := range res {
+		userRes, err := t.userClient.GetUserInfo(ctxx, &grpcUser.GetUserRequest{UserID: res[index].UserID})
+		if err != nil {
+			logger.Error("tweetService-GetTweetComments: call grpcUser to server error", zap.Error(err))
+			return res, total, err
+		}
+
+		// pass user info to res
+		res[index].UserInfo = &model.UserInfo{
+			ID:       int(userRes.Id),
+			Email:    userRes.Email,
+			FullName: &userRes.FullName,
+			UrlAvt:   &userRes.UrlAvt,
+		}
+	}
+
+	return res, total, nil
+}
+
 // CommentWebSocket implements application.TweetService.
 func (t *tweetService) CommentWebSocket(ctx context.Context, conn *websocket.Conn, req model.CommentWSReq) {
 	var (

@@ -17,6 +17,46 @@ type tweetQueryRepository struct {
 	db *sqlx.DB
 }
 
+// GetTweetComments implements tweet.TweetQueryRepository.
+func (repo *tweetQueryRepository) GetTweetComments(ctx context.Context, req model.TweetCommentReq) ([]model.TweetCommentRes, uint64, error) {
+	var res []model.TweetCommentRes
+	query := `select t.ID ,
+						t.Description ,
+						t.UserID ,
+						t.CreatedAt 
+				from tweetcomment t
+				where t.TweetID = :TweetID and t.DeletedAt is null 
+				order by t.CreatedAt desc 
+				limit :Limit Offset :Offset`
+	params := map[string]interface{}{
+		"TweetID": req.TweetID,
+		"Limit":   req.Limit,
+		"Offset":  (req.Page - 1) * req.Limit,
+	}
+	queryString, args, err := repo.db.BindNamed(query, params)
+	if err != nil {
+		logger.Error("tweetQueryRepository-GetTweetComments: bindName for query error", zap.Error(err))
+		return res, 0, err
+	}
+
+	err = repo.db.SelectContext(ctx, &res, queryString, args...)
+	if err != nil && err != sql.ErrNoRows {
+		logger.Error("tweetQueryRepository-GetTweetComments: get tweets error", zap.Error(err))
+		return res, 0, err
+	}
+
+	queryCount := `select count(*) from tweetcomment tc 
+					where tc.TweetID = ? and tc.DeletedAt is null `
+	var count uint64
+	err = repo.db.GetContext(ctx, &count, queryCount, req.TweetID)
+	if err != nil {
+		logger.Error("tweetQueryRepository-GetTweetComments: count total comment error", zap.Error(err))
+		return res, 0, nil
+	}
+
+	return res, count, nil
+}
+
 // GetNewCommentTweetByUserIDAndTweetID implements tweet.TweetQueryRepository.
 func (repo *tweetQueryRepository) GetNewCommentTweetByUserIDAndTweetID(ctx context.Context, params map[string]interface{}) (model.OutgoingMessageWSRes, error) {
 	var res model.OutgoingMessageWSRes

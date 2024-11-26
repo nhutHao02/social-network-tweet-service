@@ -15,4 +15,5 @@ type TweetService interface {
 	ActionTweetsByUserID(ctx context.Context, req model.ActionTweetReq) (bool, error)
 	DeleteActionTweetsByUserID(ctx context.Context, req model.ActionTweetReq) (bool, error)
 	CommentWebSocket(ctx context.Context, conn *websocket.Conn, req model.CommentWSReq)
+	GetTweetComments(ctx context.Context, req model.TweetCommentReq) ([]model.TweetCommentRes, uint64, error)
 }

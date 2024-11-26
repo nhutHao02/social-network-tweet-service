@@ -25,6 +25,7 @@ func MapRoutes(
 			vTweet.GET("/tweet-action", tweetHandler.GetActionTweetsByUserID)
 			vTweet.POST("/action", tweetHandler.ActionTweet)
 			vTweet.DELETE("/delete-action", tweetHandler.DeleteActionTweet)
+			vTweet.GET("/comment", tweetHandler.GetTweetComments)
 
 			vSocket := v1.Group("/ws")
 			vSocket.GET("/comment-tweet-ws", tweetHandler.TweetCommentWebSocketHandler)

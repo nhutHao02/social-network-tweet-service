@@ -12,6 +12,7 @@ type TweetQueryRepository interface {
 	GetActionTweetsByUserID(ctx context.Context, req model.GetActionTweetsByUserIDReq) ([]model.GetTweetsRes, uint64, error)
 	ExistedTweet(ctx context.Context, tweetId int64) (bool, error)
 	GetNewCommentTweetByUserIDAndTweetID(ctx context.Context, params map[string]interface{}) (model.OutgoingMessageWSRes, error)
+	GetTweetComments(ctx context.Context, req model.TweetCommentReq) ([]model.TweetCommentRes, uint64, error)
 }
 
 type TweetCommandRepository interface {
