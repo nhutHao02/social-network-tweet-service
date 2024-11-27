@@ -6,7 +6,7 @@ This is project about social network that allows users to share content, images,
 - Back-end:
   - Language: Go.
   - Frameworks/Platforms: Gin-Gonic, gRPC, Swagger, JWT, Google-Wire, SQLX, Redis, Zap, WebSocket.
-  - Database: MariaDB.
+  - Database: MariaDB, MongoDB.
 - Front-end:
   - Language: JavaScript.
   - Frameworks/Platforms: React, Tailwind CSS, FireBase.
