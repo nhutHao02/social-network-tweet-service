@@ -13,20 +13,3 @@ var (
 var (
 	BearerString = "Bearer "
 )
-
-type ActionTweet string
-
-const (
-	Love     ActionTweet = "Love"
-	Bookmark ActionTweet = "Bookmark"
-	Repost   ActionTweet = "Repost"
-)
-
-func (a ActionTweet) IsValid() bool {
-	switch a {
-	case Love, Bookmark, Repost:
-		return true
-	default:
-		return false
-	}
-}

@@ -9,6 +9,7 @@ package internal
 import (
 	"github.com/google/wire"
 	"github.com/jmoiron/sqlx"
+	"github.com/nhutHao02/social-network-common-service/rabbitmq"
 	"github.com/nhutHao02/social-network-tweet-service/config"
 	"github.com/nhutHao02/social-network-tweet-service/internal/api"
 	"github.com/nhutHao02/social-network-tweet-service/internal/api/http"
@@ -22,10 +23,10 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeServer(cfg *config.Config, db *sqlx.DB, rdb *redis.RedisClient, userClient grpc.UserServiceClient, commentWS *websocket.Socket) *api.Server {
+func InitializeServer(cfg *config.Config, db *sqlx.DB, rdb *redis.RedisClient, userClient grpc.UserServiceClient, commentWS *websocket.Socket, rabbitmq2 *rabbitmq.RabbitMQ) *api.Server {
 	tweetQueryRepository := tweet.NewTweetQueryRepository(db)
 	tweetCommandRepository := tweet.NewTweetCommandRepository(db, tweetQueryRepository)
-	tweetService := imp.NewTweetService(tweetQueryRepository, tweetCommandRepository, userClient, commentWS)
+	tweetService := imp.NewTweetService(tweetQueryRepository, tweetCommandRepository, userClient, commentWS, rabbitmq2)
 	tweetHandler := v1.NewTweetHandler(tweetService, userClient)
 	httpServer := http.NewHTTPServer(cfg, tweetHandler)
 	server := api.NewSerVer(httpServer)

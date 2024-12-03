@@ -17,6 +17,20 @@ type tweetQueryRepository struct {
 	db *sqlx.DB
 }
 
+// GetAuthorIDOfTweet implements tweet.TweetQueryRepository.
+func (repo *tweetQueryRepository) GetAuthorIDOfTweet(ctx context.Context, tweetId int64) (int64, error) {
+	var userID int64
+	query := `select t.UserID 
+				from tweet t 
+				where t.ID = ? and t.DeletedAt is null `
+
+	if err := repo.db.GetContext(ctx, &userID, query, tweetId); err != nil {
+		logger.Error("tweetQueryRepository-GetAuthorIDOfTweet: get userID error", zap.Error(err))
+		return userID, err
+	}
+	return userID, nil
+}
+
 // GetTweetComments implements tweet.TweetQueryRepository.
 func (repo *tweetQueryRepository) GetTweetComments(ctx context.Context, req model.TweetCommentReq) ([]model.TweetCommentRes, uint64, error) {
 	var res []model.TweetCommentRes

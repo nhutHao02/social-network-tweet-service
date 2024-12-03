@@ -6,6 +6,7 @@ package internal
 import (
 	"github.com/google/wire"
 	"github.com/jmoiron/sqlx"
+	"github.com/nhutHao02/social-network-common-service/rabbitmq"
 	"github.com/nhutHao02/social-network-tweet-service/config"
 	"github.com/nhutHao02/social-network-tweet-service/internal/api"
 	"github.com/nhutHao02/social-network-tweet-service/internal/api/http"
@@ -44,6 +45,7 @@ func InitializeServer(
 	rdb *redis.RedisClient,
 	userClient grpcUser.UserServiceClient,
 	commentWS *ws.Socket,
+	rabbitmq *rabbitmq.RabbitMQ,
 ) *api.Server {
 	wire.Build(serverSet, itemServerSet, httpHandlerSet, serviceSet, repositorySet)
 	return &api.Server{}

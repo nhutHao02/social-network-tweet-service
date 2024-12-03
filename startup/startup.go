@@ -18,6 +18,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/nhutHao02/social-network-tweet-service/config"
 
+	"github.com/nhutHao02/social-network-common-service/rabbitmq"
 	"github.com/nhutHao02/social-network-tweet-service/database"
 	"github.com/nhutHao02/social-network-tweet-service/internal"
 	"github.com/nhutHao02/social-network-tweet-service/internal/api"
@@ -54,8 +55,11 @@ func Start() {
 	// init Socket
 	ws := websocket.NewSocket()
 
+	// init RabbitMQ
+	rabbitmq := initRabbitMQ(cfg.RabbitMQ)
+
 	// init Server
-	server := internal.InitializeServer(cfg, db, rdb, userClient, ws)
+	server := internal.InitializeServer(cfg, db, rdb, userClient, ws, rabbitmq)
 
 	// run server
 	runServer(server)
@@ -123,4 +127,12 @@ func openClientConnection(cfg *config.ClientConfig) pb.UserServiceClient {
 	client := pb.NewUserServiceClient(conn)
 	logger.Info("Connect to user gRPC server port: " + cfg.UserService)
 	return client
+}
+
+func initRabbitMQ(cfg *config.RabbitMQConfig) *rabbitmq.RabbitMQ {
+	rabbit, err := rabbitmq.NewRabbitMQ(cfg.QueueName, cfg.ConnectionString)
+	if err != nil {
+		logger.Fatal(err.Error(), zap.Error(err))
+	}
+	return rabbit
 }

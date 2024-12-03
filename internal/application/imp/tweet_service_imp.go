@@ -2,9 +2,12 @@ package imp
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nhutHao02/social-network-common-service/rabbitmq"
 	"github.com/nhutHao02/social-network-common-service/utils/logger"
 	"github.com/nhutHao02/social-network-tweet-service/internal/application"
 	"github.com/nhutHao02/social-network-tweet-service/internal/domain/interface/tweet"
@@ -21,6 +24,7 @@ type tweetService struct {
 	commandRepo tweet.TweetCommandRepository
 	userClient  grpcUser.UserServiceClient
 	commentWS   *ws.Socket
+	rabbitmq    *rabbitmq.RabbitMQ
 }
 
 // GetTweetComments implements application.TweetService.
@@ -107,6 +111,27 @@ func (t *tweetService) CommentWebSocket(ctx context.Context, conn *websocket.Con
 
 		// Broadcast message to the room
 		t.commentWS.Broadcast(roomWSID, userWSID, outGoingMessage)
+
+		authorID, err := t.queryRepo.GetAuthorIDOfTweet(ctx, req.TweetID)
+		if err != nil {
+			logger.Warn("tweetService-CommentWebSocket: Error get AuthorID of Tweet", zap.Error(err))
+			continue
+		}
+
+		// send notification
+		notification := model.Notification{
+			UserID:    authorID,
+			AuthorID:  req.UserID,
+			Type:      constants.Comment,
+			CreatedAt: time.Now(),
+		}
+		message, err := json.Marshal(notification)
+		if err != nil {
+			logger.Error("tweetService-CommentWebSocket: Failed to marshal notification", zap.Error(err))
+		}
+		if err = t.rabbitmq.PublishMessage(message); err != nil {
+			logger.Error("tweetService-CommentWebSocket: Failed to send notification", zap.Error(err))
+		}
 	}
 }
 
@@ -125,6 +150,27 @@ func (t *tweetService) ActionTweetsByUserID(ctx context.Context, req model.Actio
 	if err != nil {
 		return success, err
 	}
+
+	authorID, err := t.queryRepo.GetAuthorIDOfTweet(ctx, req.TweetID)
+	if err != nil {
+		return false, err
+	}
+
+	// send notification
+	notification := model.Notification{
+		UserID:    authorID,
+		AuthorID:  req.UserID,
+		Type:      req.Action,
+		CreatedAt: time.Now(),
+	}
+	message, err := json.Marshal(notification)
+	if err != nil {
+		logger.Error("tweetService-ActionTweetsByUserID: Failed to marshal notification", zap.Error(err))
+	}
+	if err = t.rabbitmq.PublishMessage(message); err != nil {
+		logger.Error("tweetService-ActionTweetsByUserID: Failed to send notification", zap.Error(err))
+	}
+
 	return success, nil
 }
 
@@ -220,6 +266,7 @@ func NewTweetService(
 	commandRepo tweet.TweetCommandRepository,
 	userClient grpcUser.UserServiceClient,
 	commentWS *ws.Socket,
+	rabbitmq *rabbitmq.RabbitMQ,
 ) application.TweetService {
-	return &tweetService{queryRepo: queryRepo, commandRepo: commandRepo, userClient: userClient, commentWS: commentWS}
+	return &tweetService{queryRepo: queryRepo, commandRepo: commandRepo, userClient: userClient, commentWS: commentWS, rabbitmq: rabbitmq}
 }
