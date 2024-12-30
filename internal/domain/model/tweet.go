@@ -52,6 +52,8 @@ type GetTweetsReq struct {
 type GetTweetsRes struct {
 	ID         int         `json:"id" db:"ID"`
 	Content    *string     `json:"content" db:"Content"`
+	UrlImg     *string     `json:"urlImg" db:"UrlImg"`
+	UrlVideo   *string     `json:"urlVideo" db:"UrlVideo"`
 	UserID     int         `json:"userID" db:"UserID"`
 	UserInfor  *UserInfo   `json:"userInfo"`
 	CreatedAt  time.Time   `json:"createdAt" db:"CreatedAt"`

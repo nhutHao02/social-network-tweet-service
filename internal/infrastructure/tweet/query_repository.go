@@ -111,7 +111,8 @@ func (repo *tweetQueryRepository) ExistedTweet(ctx context.Context, tweetId int6
 func getQueryActionTweetsByUserID(actionTweet constants.ActionTweet) string {
 	query := `select t.ID ,
 					t.Content ,
-					t.UserID `
+					t.UserID,
+					t.CreatedAt `
 	queryJoin := ``
 	switch actionTweet {
 	case constants.Love:
@@ -122,16 +123,23 @@ func getQueryActionTweetsByUserID(actionTweet constants.ActionTweet) string {
 		queryJoin = `from bookmarktweet t1 
 					left join tweet t 
 					on t1.TweetID = t.ID `
+	case constants.Post:
+		queryJoin = `from tweet t `
 	default:
 		queryJoin = `from reposttweet t1 
 					left join tweet t 
 					on t1.TweetID = t.ID `
 	}
-
-	queryClauses := `where t1.UserID = :UserID and t1.DeletedAt is null and t.DeletedAt is null
-				order by t.CreatedAt desc 
-				limit :Limit Offset :Offset`
-
+	queryClauses := ``
+	if actionTweet == constants.Post {
+		queryClauses = `where t.UserID = :UserID and t.DeletedAt is null
+		order by t.CreatedAt desc 
+		limit :Limit Offset :Offset`
+	} else {
+		queryClauses = `where t1.UserID = :UserID and t1.DeletedAt is null and t.DeletedAt is null
+		order by t.CreatedAt desc 
+		limit :Limit Offset :Offset`
+	}
 	return query + queryJoin + queryClauses
 }
 func getQueryCountActionTweet(actionTweet constants.ActionTweet) string {
@@ -205,9 +213,14 @@ func (repo *tweetQueryRepository) GetTweets(ctx context.Context, req model.GetTw
 	var res []model.GetTweetsRes
 	query := `select t.ID ,
 					t.Content ,
-					t.UserID
+					img.Url as 'UrlImg',
+					video.Url as 'UrlVideo',
+					t.UserID,
+					t.CreatedAt 
 				from tweet t 
-				where t.DeletedAt is null 
+				left join tweetimage img on t.ID = img.TweetID
+				left join tweetvideo video on t.ID  = video.TweetID 
+				where t.DeletedAt is null and img.DeletedAt is null and video.DeletedAt is null 
 				order by t.CreatedAt desc 
 				limit :Limit Offset :Offset`
 	params := map[string]interface{}{
@@ -253,9 +266,9 @@ func (repo *tweetQueryRepository) GetTweets(ctx context.Context, req model.GetTw
 func GetUserActionWithTweet(ctx context.Context, db *sqlx.DB, tweetID int, userID int) (model.UserAction, error) {
 	var res model.UserAction
 	query := `SELECT
-				(SELECT IF(COUNT(l.ID) > 0, 1, 0) FROM lovetweet l WHERE l.TweetID = :TweetID and l.UserID = :UserID) AS Love,
-				(SELECT IF(COUNT(b.ID) > 0, 1, 0) FROM bookmarktweet b WHERE b.TweetID = :TweetID and b.UserID = :UserID) AS Bookmark,
-				(SELECT IF(COUNT(r.ID) > 0, 1, 0) FROM reposttweet r WHERE r.TweetID = :TweetID and r.UserID = :UserID) AS Repost;`
+				(SELECT IF(COUNT(l.ID) > 0, 1, 0) FROM lovetweet l WHERE l.TweetID = :TweetID and l.UserID = :UserID and l.DeletedAt is null) AS Love,
+				(SELECT IF(COUNT(b.ID) > 0, 1, 0) FROM bookmarktweet b WHERE b.TweetID = :TweetID and b.UserID = :UserID and b.DeletedAt is null) AS Bookmark,
+				(SELECT IF(COUNT(r.ID) > 0, 1, 0) FROM reposttweet r WHERE r.TweetID = :TweetID and r.UserID = :UserID and r.DeletedAt is null) AS Repost;`
 
 	params := map[string]interface{}{
 		"TweetID": tweetID,
@@ -279,10 +292,10 @@ func GetUserActionWithTweet(ctx context.Context, db *sqlx.DB, tweetID int, userI
 func GetTweetStatistics(ctx context.Context, db *sqlx.DB, tweetID int) (model.Statistics, error) {
 	var res model.Statistics
 	query := `SELECT
-				(SELECT COUNT(distinct l.UserID) FROM lovetweet l WHERE l.TweetID = ?) AS TotalLove,
-				(SELECT COUNT(distinct tc.UserID) FROM tweetcomment tc WHERE tc.TweetID = ?) AS TotalComment,
-				(SELECT COUNT(distinct b.UserID) FROM bookmarktweet b WHERE b.TweetID = ?) AS TotalBookmark,
-				(SELECT COUNT(distinct r.UserID) FROM reposttweet r WHERE r.TweetID = ?) AS TotalRepost;`
+				(SELECT COUNT(distinct l.UserID) FROM lovetweet l WHERE l.TweetID = ? and l.DeletedAt is null) AS TotalLove,
+				(SELECT COUNT(distinct tc.UserID) FROM tweetcomment tc WHERE tc.TweetID = ? and tc.DeletedAt is null) AS TotalComment,
+				(SELECT COUNT(distinct b.UserID) FROM bookmarktweet b WHERE b.TweetID = ? and b.DeletedAt is null) AS TotalBookmark,
+				(SELECT COUNT(distinct r.UserID) FROM reposttweet r WHERE r.TweetID = ? and r.DeletedAt is null) AS TotalRepost;`
 	err := db.GetContext(ctx, &res, query, tweetID, tweetID, tweetID, tweetID)
 	if err != nil {
 		logger.Warn("tweetQueryRepository-GetTweetStatistics: get tweet statistics error", zap.Error(err))
