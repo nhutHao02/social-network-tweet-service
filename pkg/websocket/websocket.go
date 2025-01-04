@@ -36,6 +36,11 @@ func (s *Socket) AddConnection(roomID string, userID string, conn *websocket.Con
 	if _, exists := s.connections[roomID]; !exists {
 		s.connections[roomID] = make(map[string]*websocket.Conn)
 	}
+	// Check if the user already has a connection in the room.
+	if _, exists := s.connections[roomID][userID]; exists {
+		// Connection already exists for the user; return early.
+		return
+	}
 	s.connections[roomID][userID] = conn
 }
 

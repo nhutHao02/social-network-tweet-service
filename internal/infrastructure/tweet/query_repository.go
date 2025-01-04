@@ -75,6 +75,7 @@ func (repo *tweetQueryRepository) GetTweetComments(ctx context.Context, req mode
 func (repo *tweetQueryRepository) GetNewCommentTweetByUserIDAndTweetID(ctx context.Context, params map[string]interface{}) (model.OutgoingMessageWSRes, error) {
 	var res model.OutgoingMessageWSRes
 	query := `select tc.ID as 'ID' ,
+					tc.UserID as 'UserID',
 					tc.Description as 'Content' ,
 					tc.CreatedAt as 'Timestamp' 
 				from tweetcomment tc 

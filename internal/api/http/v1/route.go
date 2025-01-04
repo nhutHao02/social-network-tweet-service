@@ -23,6 +23,7 @@ func MapRoutes(
 	}))
 	v1 := router.Group("/api/v1")
 	{
+		v1.GET("/comment-tweet-websocket", tweetHandler.TweetCommentWSHandler)
 		v1.Use(middleware.JwtAuthMiddleware(logger.GetDefaultLogger()))
 		{
 			vTweet := v1.Group("/tweet")

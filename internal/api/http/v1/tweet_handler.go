@@ -361,3 +361,36 @@ func (h *TweetHandler) GetTweetComments(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, common.NewPagingSuccessResponse(res, total))
 }
+
+// TweetCommentWSHandler godoc
+//
+//	@Summary		TweetCommentWSHandler
+//	@Description	Establish a WebSocket connection to comment on tweets in real-time.
+//	@Tags			Tweet
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string						true	"Bearer <your_token>"
+//	@Param			userID			query		int							true	"User ID"
+//	@Param			tweetID			query		int							true	"Tweet ID"
+//	@Success		101				{string}	string						"WebSocket connection established"
+//	@Failure		default			{object}	common.Response{data=nil}	"failure"
+//	@Router			/ws/comment-tweet-ws [get]
+func (h *TweetHandler) TweetCommentWSHandler(c *gin.Context) {
+	var req model.CommentWSReq
+
+	if err := request.GetQueryParamsFromUrl(c, &req); err != nil {
+		return
+	}
+	if req.TweetID == 0 || req.Token == "" || req.UserID == 0 {
+		return
+	}
+	// Upgrade HTTP connection to WebSocket
+	conn, err := websocket.Upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		logger.Error("Error when upgrade HTTP connection to WebSocket", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, common.NewErrorResponse(err.Error(), constants.ConnectWSFailure))
+		return
+	}
+
+	h.tweerService.CommentWebSocket(c.Request.Context(), conn, req)
+}
